@@ -10,7 +10,7 @@ public class Main {
         int choice;
         int speed = 0;
 
-        // ===== اختيار اللغة بالبداية =====
+       
         System.out.println("Choose Language / اختر اللغة");
         System.out.println("1. Arabic");
         System.out.println("2. English");
@@ -27,7 +27,7 @@ public class Main {
             Language.setEnglish();
         }
 
-        // ===== القائمة مع loop =====
+      
         do {
 
             if (isArabic) {
