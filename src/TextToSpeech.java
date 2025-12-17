@@ -1,10 +1,10 @@
 import javazoom.jl.player.Player;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.UnknownHostException;
 import java.util.Base64;
-import java.io.*;
-import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class TextToSpeech {
@@ -12,45 +12,64 @@ public class TextToSpeech {
     private static final String API_URL =
             "https://voice.reverso.net/RestPronunciation.svc/v1/output=json/GetVoiceStream/voiceName=%s?voiceSpeed=%s&inputText=%s";
 
-    static final String ARABIC_VOICE = "Mehdi22k";
-    private static URLConnection api = new URLConnection();
-
     private static String encodeToBase64(String text) {
         return Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
     }
 
     private static String buildUrl(String text, int speed) {
         speed = Math.max(-10, Math.min(10, speed));
-
-        return String.format(API_URL, ARABIC_VOICE, speed, encodeToBase64(text));
+        String voiceName = Language.ChoseLang();
+        return String.format(API_URL, voiceName, speed, encodeToBase64(text));
     }
 
 
-    public static InputStream getAudioStream(String text, int speed) throws IOException {
+    private static InputStream getAudioStream(String text, int speed) throws IOException, NetworkException {
         String url = buildUrl(text, speed);
-        HttpURLConnection conn = api.openAudioConnection(url);
+        HttpURLConnection conn = URLConnection.openAudioConnection(url);
 
+/**
+ * Validates the HTTP response code.
+ * <p>
+ * The response code 200 indicates a successful HTTP request.
+ * Any other response code will result in a NetworkException.
+ *
+ * @param responseCode the HTTP response code to validate
+ * @throws NetworkException if responseCode is not 200
+ */
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
-            throw new IOException("فشل الاتصال: " + responseCode);
+            throw new NetworkException("Response code: " + responseCode);
         }
 
         return conn.getInputStream();
     }
 
     public static void speak(String text, int speed) {
-        try {
-            System.out.println("🔊 =============== " + text);
+        if (text == null || text.trim().isEmpty()) {
+            System.err.println(Messages.get("empty_text"));
+            return;
+        }
 
-            Player player = new Player( getAudioStream(text, speed));
+        try (InputStream audioStream = getAudioStream(text, speed)) {
+            System.out.println(Messages.get("playing") + text);
+
+            Player player = new Player(audioStream);
             player.play();
-            getAudioStream(text, speed).close();
 
-            System.out.println("✓ انتهى التشغيل");
+            System.out.println(Messages.get("finished"));
+
+        } catch (NetworkException e) {
+            System.err.println("❌ " + e.getMessage());
+
+        } catch (UnknownHostException e) {
+            System.err.println("❌ " + Messages.get("error_no_internet"));
+
+        } catch (IOException e) {
+            System.err.println("❌ " + Messages.get("error_connection") + ": " + e.getMessage());
+
         } catch (Exception e) {
-            System.err.println("خطأ في التشغيل: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("❌ " + Messages.get("error_playing") + e.getMessage());
+
         }
     }
-
 }
