@@ -1,4 +1,4 @@
-public class Language {
+/*public class Language {
 
     static final String ARABIC_VOICE = "Mehdi22k";
     static final String ENGLISH_VOICE = "Heather22k";
@@ -23,4 +23,26 @@ public class Language {
         return ENGLISH_VOICE;
     }
 
+}
+
+*/
+
+public class Language {
+
+    private static final String ARABIC_VOICE = "Mehdi22k";
+    private static final String ENGLISH_VOICE = "Heather22k";
+
+    private static String currentVoice = ARABIC_VOICE;
+
+    public static void setArabic() {
+        currentVoice = ARABIC_VOICE;
+    }
+
+    public static void setEnglish() {
+        currentVoice = ENGLISH_VOICE;
+    }
+
+    public static String ChoseLang() {
+        return currentVoice;
+    }
 }
